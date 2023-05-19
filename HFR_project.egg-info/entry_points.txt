@@ -1,2 +1,2 @@
 [console_scripts]
-MO_project = MO_project.__main__:main
+HFR_project = HFR_project.__main__:main

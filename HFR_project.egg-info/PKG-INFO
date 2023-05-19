@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: HFR-project
+Version: 0.0.1
+Summary: CLI model validation application against high-frequency radars
+Author-email: Giurato Michele <michele.giurato@cmcc.it>
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# HFR-project
+Model current validation against high-frequency radars

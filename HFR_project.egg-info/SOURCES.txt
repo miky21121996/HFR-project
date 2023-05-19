@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+HFR_project/__init__.py
+HFR_project/__main__.py
+HFR_project/cli.py
+HFR_project/core.py
+HFR_project.egg-info/PKG-INFO
+HFR_project.egg-info/SOURCES.txt
+HFR_project.egg-info/dependency_links.txt
+HFR_project.egg-info/entry_points.txt
+HFR_project.egg-info/top_level.txt
