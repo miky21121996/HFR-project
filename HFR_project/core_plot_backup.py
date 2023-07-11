@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
-import matplotlib.cm as cm
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.colors import rgb2hex, TwoSlopeNorm
 import matplotlib.dates as mdates
@@ -12,9 +11,9 @@ import mpl_toolkits.axisartist.floating_axes as fa
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from scipy.stats import linregress, pearsonr, gaussian_kde
+from scipy.stats import linregress, pearsonr
 from windrose import WindroseAxes
-from core import unlist
+from HFR_project.core_backup import unlist
 
 
 def plot_hfr_wind_field(info, extent, minimum, maximum, x, y, speed_hfr, U, V, skip, skip_coords, date_str, ds, output_plot_folder):
@@ -224,7 +223,7 @@ def plot_rmsd(info, extent, x, y, min_rmsd, max_rmsd, masked_speed_interpolated,
     plt.close()
 
 
-def plot_mod_obs_ts_comparison_back(obs_ts, mod_ts, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring):
+def plot_mod_obs_ts_comparison(obs_ts, mod_ts, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring):
     plotname = ds.id + '_' + date_in + '_' + date_fin + '_' + \
         time_res_to_average + name_file_substring + '.png'
     fig = plt.figure(figsize=(18, 12))
@@ -360,8 +359,7 @@ def scatterPlot(mod, obs, outname, name, n_stations, n_time, possible_markers, h
     legend_1 = plt.legend(handles=im.legend_elements(num=n_time-1)[
                           0], labels=classes, loc='right', prop={"size": 9}, bbox_to_anchor=(1.3, 0.5))
     plt.legend(handles=marker_array, loc='upper left', prop={"size": 12})
-    if n_time < 15:
-        plt.gca().add_artist(legend_1)
+    plt.gca().add_artist(legend_1)
 
     maxVal = np.nanmax((x, y))
     ax.set_ylim(0, maxVal)
@@ -437,7 +435,7 @@ def QQPlot(mod, obs, outname, name, **kwargs):
     idx = z.argsort()
     x, y, z = x[idx], y[idx], z[idx]
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     im = ax.scatter(x, y, c=z, s=3, edgecolor=[], cmap='jet')
 
@@ -498,7 +496,7 @@ def QQPlot(mod, obs, outname, name, **kwargs):
     return stat_array
 
 
-def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring):
+def plot_mod_obs_ts_comparison(obs_ts, mod_ts, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring):
     plotname = ds.id + '_' + date_in + '_' + date_fin + '_' + \
         time_res_to_average + name_file_substring + '.png'
     fig = plt.figure(figsize=(18, 12))
@@ -507,35 +505,12 @@ def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_ave
     plt.title(title_substring+': ' + ds.id + '\n Period: ' +
               date_in + '-' + date_fin, fontsize=29)
 
-    # Calculate the numerator, ignoring NaN values
-    numerator = np.nansum(np.array(mod_ts) * np.array(len_mod))
-
-    # Calculate the denominator, ignoring NaN values
-    denominator = np.nansum(np.array(len_mod))
-
-    # Calculate the result, handling division by zero if necessary
-    mean_vel_mod = round(
-        numerator / denominator if denominator != 0 else np.nan, 2)
-
-    # mean_vel_mod = np.sum(np.array(mod_ts) * len_mod) / np.sum(len_mod)
-#    mean_vel_mod = round(np.nanmean(np.array(mod_ts)), 2)
+    mean_vel_mod = round(np.nanmean(np.array(mod_ts)), 2)
     print("timerange shape: ", timerange.shape)
     print("mod_ts shape: ", np.array(mod_ts).shape)
     plt.plot(timerange, np.array(mod_ts), label=name_exp +
              ' : '+str(mean_vel_mod)+' m/s', linewidth=2)
-#    mean_vel_obs = round(np.nanmean(np.array(obs_ts)), 2)
-
-    # Calculate the numerator, ignoring NaN values
-    numerator = np.nansum(np.array(obs_ts) * np.array(len_obs))
-
-    # Calculate the denominator, ignoring NaN values
-    denominator = np.nansum(np.array(len_obs))
-
-    # Calculate the result, handling division by zero if necessary
-    mean_vel_obs = round(
-        numerator / denominator if denominator != 0 else np.nan, 2)
-
-    # mean_vel_obs = np.sum(np.array(obs_ts) * len_obs) / np.sum(len_obs)
+    mean_vel_obs = round(np.nanmean(np.array(obs_ts)), 2)
     plt.plot(timerange, np.array(obs_ts), label='Observation : ' +
              str(mean_vel_obs)+' m/s', linewidth=2)
     plt.grid()
@@ -664,7 +639,7 @@ def plot_windrose(direction, velocity, minimum, maximum, ds, date_in, date_fin, 
     plotname = ds.id + '_' + date_in + '_' + \
         date_fin + '_' + name_file_substring + '.png'
     fig = plt.figure()
-    # plt.rc('font', size=24)
+    #plt.rc('font', size=24)
     rect = [0.1, 0.1, 0.8, 0.8]
     hist_ax = plt.Axes(fig, rect)
     hist_ax.bar(np.array([1]), np.array([1]))
@@ -672,29 +647,25 @@ def plot_windrose(direction, velocity, minimum, maximum, ds, date_in, date_fin, 
     turbo = plt.get_cmap('turbo')
     print(direction)
     print(velocity)
-    # Get the 'turbo' colormap
-    # Create a ScalarMappable object using the turbo colorma
-
     ax.bar(direction, velocity, normed=True, bins=np.linspace(
-        minimum, maximum, 10), opening=0.8, edgecolor='white', cmap=turbo)
-
+        minimum, maximum, 5), opening=0.8, edgecolor='white', cmap=turbo)
     # set the y-axis tick positions
     print(ymin)
     print(ymax)
-    ax.set_yticks(np.linspace(ymin, ymax, 10))
+    ax.set_yticks(np.linspace(ymin, ymax, 5))
     ax.set_yticklabels(['{:.2f} %'.format(x)
-                       for x in np.linspace(ymin, ymax, 10)], fontsize=12)
+                       for x in np.linspace(ymin, ymax, 5)], fontsize=12)
     # Set the y-axis tick format to percentage
     # ax.yaxis.set_major_formatter(plt.PercentFormatter())
     # get y-axis limits
-    # ymin, ymax = ax.get_ylim()
+    #ymin, ymax = ax.get_ylim()
 
     # print y-axis limits
-    # print("y-axis limits:", ymin, ymax)
+    #print("y-axis limits:", ymin, ymax)
 
     ax.set_title(title_substring+':' + '\n Period: ' +
                  date_in + '-' + date_fin, fontsize=12)
-    ax.set_legend(loc=4, bbox_to_anchor=(1., -0.07))
+    #ax.set_legend(loc=4, bbox_to_anchor=(1.,-0.07))
     legend = ax.set_legend(loc=4, bbox_to_anchor=(
         1., -0.07), prop={'size': 12})
 
@@ -758,7 +729,7 @@ class TaylorDiagram(object):
         self._ax = ax  # Graphical axes
         self.ax = ax.get_aux_axes(tr)  # Polar coordinates
         # Add reference point and STD contour
-        l, = self.ax.plot([0], self.STD[0], 'r*', ls='', ms=18, label=label[0])
+        l, = self.ax.plot([0], self.STD[0], 'r*', ls='', ms=12, label=label[0])
         l1, = self.ax.plot([0], self.STD[0], 'r*',
                            ls='', ms=12, label=label[0])
 #    q , = self.ax.plot([0], self.STD[1], 'b*', ls='', ms=12, label=label[1])
@@ -801,18 +772,18 @@ def srl(obsSTD, s, r, l, fname, markers, output_plot_folder_comparison):
     fig = plt.figure(figsize=(20, 16))
     dia = TaylorDiagram(obsSTD, fig=fig, rect=111, label=['ref'])
     plt.clabel(dia.add_contours(0, 'k'), inline=1, fontsize=40)
-    # plt.clabel(dia.add_contours(1,'b'), inline=1, fontsize=20)
+    #plt.clabel(dia.add_contours(1,'b'), inline=1, fontsize=20)
     srlc = zip(s, r, l)
-    # srlc1 = zip(s1, r1, l1)
+    #srlc1 = zip(s1, r1, l1)
 
     for count, i in enumerate(srlc):
         dia.add_sample(i[0], i[1], label=i[2], marker=markers[count],
-                       markersize=20, mec='red', mfc='red', mew=1.6)
+                       markersize=12, mec='red', mfc='none', mew=1.6)
 #  for count,i in enumerate(srlc1):
 #    dia.add_sample(i[0], i[1], label=i[2], marker=markers[count],markersize=12, mec = 'blue', mfc = 'none', mew=1.6)
         spl = [p.get_label() for p in dia.samplePoints]
         fig.legend(dia.samplePoints, spl, numpoints=1,
-                   prop={'size': 30},  loc=[0.8, 0.65])
+                   prop={'size': 20},  loc=[0.83, 0.55])
         fig.suptitle("Taylor Diagram for " +
                      fname.split('_TaylorDiagram.png')[0], fontsize=35)
         fig.savefig(output_plot_folder_comparison+'/'+fname)

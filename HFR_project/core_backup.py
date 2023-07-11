@@ -1,4 +1,5 @@
 import os
+import glob
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -29,29 +30,31 @@ def Link_Files(paths, old_names, new_names, date_in, date_fin, time_res, out_pat
         # Loop through paths
         for i, path in enumerate(paths):
             # Find files
-            for root, dirs, files in os.walk(path):
-                for file in files:
-                    u_file = None
-                    v_file = None
-                    if old_names[i] in file and time_res[i] in file and current_date.strftime('%Y%m%d') in file:
-                        print(file)
-                        if 'U' in file:
-                            u_file = os.path.join(root, file)
-                        elif 'V' in file:
-                            v_file = os.path.join(root, file)
+            # for root, dirs, files in glob.glob(path):
+            for file in glob.glob(path + "/" + current_date.strftime("%Y%m%d") + "/model/*"):
+                u_file = None
+                v_file = None
+                if old_names[i] in file and time_res[i] in file and current_date.strftime('%Y%m%d') in file:
+                    print(file)
+                    if 'U' in file:
+                        #u_file = os.path.join(root, file)
+                        u_file = file
+                    elif 'V' in file:
+                        #v_file = os.path.join(root, file)
+                        v_file = file
 
-                    # Link files to output folder
-                        if u_file is not None and v_file is not None:
-                            os.symlink(u_file, os.path.join(
-                                out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_U.nc"))
-                            os.symlink(v_file, os.path.join(
-                                out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_V.nc"))
-                        elif u_file is not None and 'U' in u_file:
-                            os.symlink(u_file, os.path.join(
-                                out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_U.nc"))
-                        elif v_file is not None and 'V' in v_file:
-                            os.symlink(v_file, os.path.join(
-                                out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_V.nc"))
+                # Link files to output folder
+                    if u_file is not None and v_file is not None:
+                        os.symlink(u_file, os.path.join(
+                            out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_U.nc"))
+                        os.symlink(v_file, os.path.join(
+                            out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_V.nc"))
+                    elif u_file is not None and 'U' in u_file:
+                        os.symlink(u_file, os.path.join(
+                            out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_U.nc"))
+                    elif v_file is not None and 'V' in v_file:
+                        os.symlink(v_file, os.path.join(
+                            out_paths[i], f"{new_names[i]}_{time_res[i]}_{current_date.strftime('%Y%m%d')}_grid_V.nc"))
 
         # Increment date
         current_date += timedelta(days=1)
@@ -319,6 +322,7 @@ def Get_Closest_Hfr_Time_Range_Index(time_res_to_average, ini_date, fin_date, av
     print(f"nearest end time instant: {averaged_ds['TIME'][idx2]}")
     return idx1, idx2, closerval1, closerval2
 
+
 def find_date_indices(dataset, start_date, final_date, time_resolution):
     start_bool_value = True
     final_bool_value = True
@@ -327,13 +331,16 @@ def find_date_indices(dataset, start_date, final_date, time_resolution):
         final_date = pd.to_datetime(final_date, format='%Y%m%d').date()
         time_values = dataset['TIME'].values.astype('datetime64[D]')
     elif time_resolution == 'M':
-        start_date = pd.to_datetime(start_date, format='%Y%m%d').to_period('M').start_time.strftime('%Y-%m')
-        final_date = pd.to_datetime(final_date, format='%Y%m%d').to_period('M').end_time.strftime('%Y-%m')
+        start_date = pd.to_datetime(start_date, format='%Y%m%d').to_period(
+            'M').start_time.strftime('%Y-%m')
+        final_date = pd.to_datetime(final_date, format='%Y%m%d').to_period(
+            'M').end_time.strftime('%Y-%m')
         print(final_date)
         time_values = dataset['TIME'].values.astype('datetime64[M]')
         print(time_values)
     else:
-        raise ValueError("Unsupported time resolution: {}".format(time_resolution))
+        raise ValueError(
+            "Unsupported time resolution: {}".format(time_resolution))
 
     # Find the index of the first time instant of the start_date
     start_idx = np.where(time_values == np.datetime64(start_date))[0]
@@ -424,10 +431,10 @@ def Get_Max_Min_Interpolated_Model(idx1, idx2, averaged_ds, masked_subset_speed_
             speed_interpolated, mask=mask_hfr)
         min_interpolated_subset_model = np.nanmin(
             masked_speed_interpolated.data)
-        min_value = np.nanmin([min_value, min_interpolated_subset_model])
+        min_value = min(min_value, min_interpolated_subset_model)
         max_interpolated_subset_model = np.nanmax(
             masked_speed_interpolated.data)
-        max_value = np.nanmax([max_value, max_interpolated_subset_model])
+        max_value = max(max_value, max_interpolated_subset_model)
 
         threshold = 0.7
         step_lon = lon_hfr[1]-lon_hfr[0]
@@ -443,10 +450,10 @@ def Get_Max_Min_Interpolated_Model(idx1, idx2, averaged_ds, masked_subset_speed_
         masked_subset_speed_model_instant = ma.masked_array(
             subset_speed_model_instant, mask=hfr_mask_interpolated)
 
-        min_value_rev = np.nanmin([min_value_rev, np.nanmin(
-            masked_subset_speed_model_instant.data)])
-        max_value_rev = np.nanmax([max_value_rev, np.nanmax(
-            masked_subset_speed_model_instant.data)])
+        min_value_rev = min(min_value_rev, np.nanmin(
+            masked_subset_speed_model_instant.data))
+        max_value_rev = max(max_value_rev, np.nanmax(
+            masked_subset_speed_model_instant.data))
 
         masked_U = ma.masked_array(U, mask=mask_hfr)
         masked_V = ma.masked_array(V, mask=mask_hfr)
@@ -458,10 +465,10 @@ def Get_Max_Min_Interpolated_Model(idx1, idx2, averaged_ds, masked_subset_speed_
         masked_hfr_speed_interpolated, *_ = interp_obs_to_mod(
             lon_hfr, lat_hfr, sol_speed_hfr, sol_u_hfr, sol_v_hfr, x_subset_model, y_subset_model, hfr_mask_interpolated)
 
-        min_obs_rev = np.nanmin([min_obs_rev, np.nanmin(
-            masked_hfr_speed_interpolated.data)])
-        max_obs_rev = np.nanmax([min_obs_rev, np.nanmax(
-            masked_hfr_speed_interpolated.data)])
+        min_obs_rev = min(min_obs_rev, np.nanmin(
+            masked_hfr_speed_interpolated.data))
+        max_obs_rev = max(min_obs_rev, np.nanmax(
+            masked_hfr_speed_interpolated.data))
 
     return min_value, max_value, min_value_rev, max_value_rev, min_obs_rev, max_obs_rev
 
@@ -487,9 +494,9 @@ def Get_Max_Min_Bias(idx1, idx2, averaged_ds, masked_subset_speed_model, x_subse
         masked_speed_interpolated = ma.masked_array(
             speed_interpolated, mask=mask_hfr)
         min_bias = np.nanmin(masked_speed_interpolated.data-speed_hfr.data)
-        min_value = np.nanmin([min_value, min_bias])
+        min_value = min(min_value, min_bias)
         max_bias = np.nanmax(masked_speed_interpolated.data-speed_hfr.data)
-        max_value = np.nanmax([max_value, max_bias])
+        max_value = max(max_value, max_bias)
 
         threshold = 0.7
         step_lon = lon_hfr[1]-lon_hfr[0]
@@ -518,11 +525,11 @@ def Get_Max_Min_Bias(idx1, idx2, averaged_ds, masked_subset_speed_model, x_subse
 
         min_bias = np.nanmin(masked_hfr_speed_interpolated.data -
                              masked_subset_speed_model_instant.data)
-        min_value_rev = np.nanmin([min_value_rev, min_bias])
+        min_value_rev = min(min_value_rev, min_bias)
 
         max_bias = np.nanmax(masked_hfr_speed_interpolated.data -
                              masked_subset_speed_model_instant.data)
-        max_value_rev = np.nanmax([max_value_rev, max_bias])
+        max_value_rev = max(max_value_rev, max_bias)
 
     return min_value, max_value, min_value_rev, max_value_rev
 
@@ -549,10 +556,10 @@ def Get_Max_Min_Rmsd(idx1, idx2, averaged_ds, masked_subset_speed_model, x_subse
             speed_interpolated, mask=mask_hfr)
         min_rmsd = np.nanmin(
             np.sqrt((masked_speed_interpolated.data-speed_hfr.data)**2))
-        min_value = np.nanmin([min_value, min_rmsd])
+        min_value = min(min_value, min_rmsd)
         max_rmsd = np.nanmax(
             np.sqrt((masked_speed_interpolated.data-speed_hfr.data)**2))
-        max_value = np.nanmax([max_value, max_rmsd])
+        max_value = max(max_value, max_rmsd)
 
         threshold = 0.7
         step_lon = lon_hfr[1]-lon_hfr[0]
@@ -581,11 +588,11 @@ def Get_Max_Min_Rmsd(idx1, idx2, averaged_ds, masked_subset_speed_model, x_subse
 
         min_rmsd = np.nanmin(np.sqrt(
             (masked_hfr_speed_interpolated.data-masked_subset_speed_model_instant.data)**2))
-        min_value_rev = np.nanmin([min_value_rev, min_rmsd])
+        min_value_rev = min(min_value_rev, min_rmsd)
 
         max_rmsd = np.nanmax(np.sqrt(
             (masked_hfr_speed_interpolated.data-masked_subset_speed_model_instant.data)**2))
-        max_value_rev = np.nanmax([max_value_rev, max_rmsd])
+        max_value_rev = max(max_value_rev, max_rmsd)
 
     return min_value, max_value, min_value_rev, max_value_rev
 
