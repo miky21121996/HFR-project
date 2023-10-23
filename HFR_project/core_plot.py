@@ -271,7 +271,8 @@ def line_A(x, m_A, q_A):
 
 
 def BIAS(data, obs):
-    return np.round((np.nanmean(data-obs)).data, 2)
+    # return np.round((np.nanmean(data-obs)).data, 2)
+    return np.round((np.nanmean(obs-data)).data, 2)
 
 
 def RMSE(data, obs):
@@ -490,15 +491,21 @@ def QQPlot(mod, obs, outname, name, **kwargs):
     ax.spines['top'].set_visible(False)
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    cbar = plt.colorbar(im, fraction=0.02)
-    cbar.set_ticks([z.min(), z.max()])
+    #cbar = plt.colorbar(im, fraction=0.02)
+    #cbar.set_ticks([z.min(), z.max()])
+
+    ticks_1 = np.linspace(z.min(), z.max(), 5, endpoint=True)
+    cbar = plt.colorbar(im, fraction=0.02, ticks=ticks_1)
+    cbar.ax.set_yticklabels(['{:.1f}'.format(x) for x in ticks_1], fontsize=13)
+    cbar.set_label('probaility density [%]',
+                   rotation=270, size=18, labelpad=15)
 
     plt.savefig(outname)
     plt.close()
     return stat_array
 
 
-def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring):
+def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring, time_res_axis, color_list):
     plotname = ds.id + '_' + date_in + '_' + date_fin + '_' + \
         time_res_to_average + name_file_substring + '.png'
     fig = plt.figure(figsize=(18, 12))
@@ -522,7 +529,7 @@ def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_ave
     print("timerange shape: ", timerange.shape)
     print("mod_ts shape: ", np.array(mod_ts).shape)
     plt.plot(timerange, np.array(mod_ts), label=name_exp +
-             ' : '+str(mean_vel_mod)+' m/s', linewidth=2)
+             ' : '+str(mean_vel_mod)+' m/s', linewidth=2, color=color_list)
 #    mean_vel_obs = round(np.nanmean(np.array(obs_ts)), 2)
 
     # Calculate the numerator, ignoring NaN values
@@ -537,20 +544,25 @@ def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_ave
 
     # mean_vel_obs = np.sum(np.array(obs_ts) * len_obs) / np.sum(len_obs)
     plt.plot(timerange, np.array(obs_ts), label='Observation : ' +
-             str(mean_vel_obs)+' m/s', linewidth=2)
+             str(mean_vel_obs)+' m/s', linewidth=2, color='green')
     plt.grid()
     ax.tick_params(axis='both', labelsize=26)
-    if time_res_to_average[1] == 'D':
+    # You can adjust the buffer percentage as needed
+    buffer = 0.01 * (timerange[-1] - timerange[0])
+
+# Set the x-axis limits to include the buffer
+    ax.set_xlim(timerange[0] - buffer, timerange[-1] + buffer)
+    if time_res_axis[1] == 'D':
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(
-            interval=int(time_res_to_average[0])))
+            interval=int(time_res_axis[0])))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
-    if time_res_to_average[1] == 'M':
+    if time_res_axis[1] == 'M':
         ax.xaxis.set_major_locator(mdates.MonthLocator(
-            interval=int(time_res_to_average[0])))
+            interval=int(time_res_axis[0])))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-    if time_res_to_average[1] == 'Y':
+    if time_res_axis[1] == 'Y':
         ax.xaxis.set_major_locator(mdates.YearLocator(
-            interval=int(time_res_to_average[0])))
+            interval=int(time_res_axis[0])))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
     fig.autofmt_xdate()
@@ -563,7 +575,7 @@ def plot_mod_obs_ts_comparison(obs_ts, mod_ts, len_obs, len_mod, time_res_to_ave
     return mean_vel_mod, mean_vel_obs
 
 
-def plot_mod_obs_ts_comparison_1(obs_ts, mod_ts, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring, num_exp):
+def plot_mod_obs_ts_comparison_1(obs_ts, mod_ts, time_res_to_average, ds, date_in, date_fin, output_plot_folder, timerange, name_exp, title_substring, name_file_substring, num_exp, time_res_axis):
     plotname = ds.id + '_' + date_in + '_' + date_fin + '_' + \
         time_res_to_average + name_file_substring + '.png'
     fig = plt.figure(figsize=(18, 12))
@@ -571,30 +583,30 @@ def plot_mod_obs_ts_comparison_1(obs_ts, mod_ts, time_res_to_average, ds, date_i
     plt.rc('font', size=24)
     plt.title(title_substring+': ' + ds.id + '\n Period: ' +
               date_in + '-' + date_fin, fontsize=29)
-
+    color_list = ['blue', 'red']
     for exp in range(num_exp):
         mean_vel_mod = round(np.nanmean(
             np.array(unlist(mod_ts[ds.id][exp]))), 2)
         print("mod_ts: ", mod_ts[ds.id][exp])
         plt.plot(timerange, np.array(
-            unlist(mod_ts[ds.id][exp])), label=name_exp[exp] + ' : '+str(mean_vel_mod)+' m/s', linewidth=2)
+            unlist(mod_ts[ds.id][exp])), label=name_exp[exp] + ' : '+str(mean_vel_mod)+' m/s', linewidth=2, color=color_list[exp])
 
     mean_vel_obs = round(np.nanmean(np.array(obs_ts[ds.id])), 2)
     plt.plot(timerange, np.array(
-        obs_ts[ds.id]), label='Observation : '+str(mean_vel_obs)+' m/s', linewidth=2)
+        obs_ts[ds.id]), label='Observation : '+str(mean_vel_obs)+' m/s', linewidth=2, color='green')
     plt.grid()
     ax.tick_params(axis='both', labelsize=26)
-    if time_res_to_average[1] == 'D':
+    if time_res_axis[1] == 'D':
         ax.xaxis.set_major_locator(mdates.WeekdayLocator(
-            interval=int(time_res_to_average[0])))
+            interval=int(time_res_axis[0])))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
-    if time_res_to_average[1] == 'M':
+    if time_res_axis[1] == 'M':
         ax.xaxis.set_major_locator(mdates.MonthLocator(
-            interval=int(time_res_to_average[0])))
+            interval=int(time_res_axis[0])))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-    if time_res_to_average[1] == 'Y':
+    if time_res_axis[1] == 'Y':
         ax.xaxis.set_major_locator(mdates.YearLocator(
-            interval=int(time_res_to_average[0])))
+            interval=int(time_res_axis[0])))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
     fig.autofmt_xdate()

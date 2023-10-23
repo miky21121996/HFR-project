@@ -3,7 +3,7 @@ import os
 import glob
 from datetime import datetime, timedelta
 from .cli import parse, Configuration
-from .core_backup import Link_Files, Destaggering
+from .core_backup import Link_Files_mo, Destaggering
 
 
 def main():
@@ -11,8 +11,9 @@ def main():
     config = Configuration(
         '/work/oda/mg28621/HFR_project/HFR_project/configuration.ini')
     if args.link:
-        Link_Files(config.paths, config.old_names, config.new_names, config.link_date_in,
-                   config.link_date_fin, config.time_res, config.out_paths)
+        print("sono in link")
+        Link_Files_mo(config.paths, config.old_names, config.new_names, config.link_date_in,
+                      config.link_date_fin, config.time_res, config.out_paths)
     if args.destaggering:
         Destaggering(config.destag_date_in, config.destag_date_fin, config.input_paths,
                      config.path_to_out_destag_model_folder, config.exp_names, config.destag_time_res, config.mask_paths)
@@ -31,6 +32,7 @@ def main():
                     file_list += glob.glob(pattern)
 
                     # Increment the current date
+                    print(current_date)
                     current_date = (datetime.strptime(
                         current_date, date_format) + timedelta(days=1)).strftime(date_format)
                 # Construct the command
@@ -41,7 +43,7 @@ def main():
             #cmd = ['ncrcat',f'{destag_folder}/{name}_{time_res}*_grid_U2T.nc',out_file]
 
             # Execute the command
-                subprocess.run(cmd, check=True)
+                #subprocess.run(cmd, check=True)
 
             combined_file = f'{destag_folder}/{name}_{time_res}_grid_V2T_combined.nc'
 

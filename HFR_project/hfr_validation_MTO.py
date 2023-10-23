@@ -95,6 +95,8 @@ def main(args):
         np.append('Non-Dimensional Observation', label_plot_arr))
     markers = ['o', 's', '^', '+', 'x', 'D']
 
+    color_list = ['blue', 'red']
+
     y_model_min = {}
     y_model_max = {}
     y_obs_min = {}
@@ -270,9 +272,12 @@ def main(args):
             speed_model = np.sqrt(u_model*u_model + v_model*v_model)
 
             # repeat the mask for all the days
+            # T_mask = np.repeat(
+            #    t_mask[:, :, :, :], speed_model.shape[0], axis=0)
             T_mask = np.repeat(
-                t_mask[:, :, :, :], speed_model.shape[0], axis=0)
-            t_mask_1 = T_mask[:, 0, :, :]
+                t_mask[:, 0, :, :], speed_model.shape[0], axis=0)
+            #t_mask_1 = T_mask[:, 0, :, :]
+            t_mask_1 = T_mask
             u_model = ma.masked_array(
                 u_model, mask=np.logical_not(t_mask_1))
             v_model = ma.masked_array(
@@ -461,7 +466,7 @@ def main(args):
             title_substring = 'Spatial Surface Current Velocity Mean Comparison'
             name_file_substring = '_mod_obs_ts_comparison'
             mean_vel_mod, mean_vel_obs = plot_mod_obs_ts_comparison(spatial_mean_hfr_ts[ds.id][:], spatial_mean_model_ts[ds.id][exp][
-                                                                    :], len_hfr[ds.id][:], len_model[ds.id][exp][:], time_res_to_average, ds, date_in, date_fin, path_to_out_plot_folder_arr[exp], timerange, label_plot_arr[exp], title_substring, name_file_substring)
+                                                                    :], len_hfr[ds.id][:], len_model[ds.id][exp][:], time_res_to_average, ds, date_in, date_fin, path_to_out_plot_folder_arr[exp], timerange, label_plot_arr[exp], title_substring, name_file_substring, '1M', color_list[exp])
             tot_mean_stat = [mean_vel_mod, mean_vel_obs]
 
             plotname = ds.id + '_' + label_plot_arr[exp] + '_' + date_in + '_' + date_fin + \
@@ -667,7 +672,7 @@ def main(args):
             name_file_substring = '_mod_obs_ts_comparison_all'
 
             plot_mod_obs_ts_comparison_1(spatial_mean_hfr_ts, spatial_mean_model_ts, time_res_to_average, ds, date_in, date_fin,
-                                         path_to_out_plot_folder_comparison, timerange, label_plot_arr, title_substring, name_file_substring, len(name_exp_arr))
+                                         path_to_out_plot_folder_comparison, timerange, label_plot_arr, title_substring, name_file_substring, len(name_exp_arr), '1M')
 
 
 if __name__ == "__main__":

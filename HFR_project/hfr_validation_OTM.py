@@ -7,7 +7,7 @@ import sys
 import xarray
 from netCDF4 import Dataset
 from core import Get_List_Of_Files, Get_String_Time_Resolution, getSourceAntennas, Get_Closest_Hfr_Time_Range_Index, find_nearest, Get_Max_Min_Interpolated_Model, Get_Max_Min_Bias, Get_Max_Min_Rmsd, seaoverland, interp_hfr_mask_to_mod_mask, interp_obs_to_mod, wind_direction, append_value, unlist, find_date_indices
-from core_plot import plot_model_wind_field, plot_bias, plot_rmsd, plot_mod_obs_ts_comparison, scatterPlot, plot_mod_obs_ts_comparison, plot_interpolated_hfr_wind_field, plot_windrose, TaylorDiagram, srl, QQPlot
+from core_plot import plot_model_wind_field, plot_bias, plot_rmsd, plot_mod_obs_ts_comparison, scatterPlot, plot_interpolated_hfr_wind_field, plot_windrose, TaylorDiagram, srl, QQPlot
 import numpy as np
 import numpy.ma as ma
 import csv
@@ -96,6 +96,8 @@ def main(args):
     label_for_taylor = list(
         np.append('Non-Dimensional Observation', label_plot_arr))
     markers = ['o', 's', '^', '+', 'x', 'D']
+
+    color_list = ['blue', 'red']
 
     y_mod_hfr_interp_min = {}
     y_mod_hfr_interp_max = {}
@@ -443,7 +445,7 @@ def main(args):
             title_substring = 'Spatial Surface Current Velocity Mean Comparison\n (Rev Interp)'
             name_file_substring = '_mod_obs_ts_comparison_rev_interp'
             mean_vel_no_interp_mod, mean_vel_interp_obs = plot_mod_obs_ts_comparison(spatial_mean_interp_hfr_ts[ds.id][exp], spatial_not_interp_mean_model_ts[ds.id][
-                exp], len_interp_hfr[ds.id][exp][:], len_not_interp_model[ds.id][exp][:], time_res_to_average, ds, date_in, date_fin, path_to_out_plot_folder_arr[exp], timerange, label_plot_arr[exp], title_substring, name_file_substring)
+                exp], len_interp_hfr[ds.id][exp][:], len_not_interp_model[ds.id][exp][:], time_res_to_average, ds, date_in, date_fin, path_to_out_plot_folder_arr[exp], timerange, label_plot_arr[exp], title_substring, name_file_substring, '1M', color_list[exp])
             tot_mean_stat_rev_interp = [
                 mean_vel_no_interp_mod, mean_vel_interp_obs]
             plotname = ds.id + '_' + date_in + '_' + date_fin + \

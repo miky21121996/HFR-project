@@ -12,6 +12,7 @@ import copy
 
 
 def Link_Files(paths, old_names, new_names, date_in, date_fin, time_res, out_paths):
+    print('ciao')
     current_date = date_in
     for path in out_paths:
         os.makedirs(path, exist_ok=True)
@@ -26,13 +27,16 @@ def Link_Files(paths, old_names, new_names, date_in, date_fin, time_res, out_pat
 
     while current_date <= date_fin:
         print(current_date)
+        print('ciao')
         # Loop through paths
+        print(paths)
         for i, path in enumerate(paths):
             # Find files
             for root, dirs, files in os.walk(path):
                 for file in files:
                     u_file = None
                     v_file = None
+                    print(file)
                     if old_names[i] in file and time_res[i] in file and current_date.strftime('%Y%m%d') in file:
                         print(file)
                         if 'U' in file:
@@ -319,6 +323,7 @@ def Get_Closest_Hfr_Time_Range_Index(time_res_to_average, ini_date, fin_date, av
     print(f"nearest end time instant: {averaged_ds['TIME'][idx2]}")
     return idx1, idx2, closerval1, closerval2
 
+
 def find_date_indices(dataset, start_date, final_date, time_resolution):
     start_bool_value = True
     final_bool_value = True
@@ -327,13 +332,16 @@ def find_date_indices(dataset, start_date, final_date, time_resolution):
         final_date = pd.to_datetime(final_date, format='%Y%m%d').date()
         time_values = dataset['TIME'].values.astype('datetime64[D]')
     elif time_resolution == 'M':
-        start_date = pd.to_datetime(start_date, format='%Y%m%d').to_period('M').start_time.strftime('%Y-%m')
-        final_date = pd.to_datetime(final_date, format='%Y%m%d').to_period('M').end_time.strftime('%Y-%m')
+        start_date = pd.to_datetime(start_date, format='%Y%m%d').to_period(
+            'M').start_time.strftime('%Y-%m')
+        final_date = pd.to_datetime(final_date, format='%Y%m%d').to_period(
+            'M').end_time.strftime('%Y-%m')
         print(final_date)
         time_values = dataset['TIME'].values.astype('datetime64[M]')
         print(time_values)
     else:
-        raise ValueError("Unsupported time resolution: {}".format(time_resolution))
+        raise ValueError(
+            "Unsupported time resolution: {}".format(time_resolution))
 
     # Find the index of the first time instant of the start_date
     start_idx = np.where(time_values == np.datetime64(start_date))[0]
