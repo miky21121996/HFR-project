@@ -34,7 +34,7 @@ class Configuration:
         self.mesh_mask_arr = config['plot_statistics_section']['mesh_mask'].split(',')
         self.u_combined_arr = config['plot_statistics_section']['u_combined'].split(',')
         self.v_combined_arr = config['plot_statistics_section']['v_combined'].split(',')
-        self.name_exp_arr = config['plot_statistics_section']['name_exp'].split(',')
+        self.name_exp_arr = config['destaggering_section']['name_exp'].split(',')
         self.label_plot_arr = config['plot_statistics_section']['label_plot'].split(',')
         self.path_to_out_plot_folder_arr = config['plot_statistics_section']['path_to_out_plot_folder'].split(',')
         self.path_to_out_plot_folder_comparison = config['plot_statistics_section']['path_to_out_plot_folder_comparison']

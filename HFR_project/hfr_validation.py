@@ -1,5 +1,5 @@
 import argparse
-from datetime import date
+from datetime import date, timedelta
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -69,9 +69,11 @@ def main(args):
     listOfFiles = Get_List_Of_Files(path_to_hfr_folder)
 
     if time_res_to_average[1]=='M':
+        if end_date.day != pd.DatetimeIndex([end_date])[0].days_in_month:
+            end_date += pd.offsets.MonthEnd()
         timerange = pd.date_range(start_date, end_date, freq=time_res_to_average[1]) - pd.DateOffset(days=15)
     if time_res_to_average[1]=='D':
-        timerange = pd.date_range(start_date, end_date, freq=time_res_to_average[1]) - pd.DateOffset(hours=12)
+        timerange = pd.date_range(start_date, end_date, freq=time_res_to_average[1]) + timedelta(hours=12)
 
     string_time_res = Get_String_Time_Resolution(start_date, end_date, time_res_to_average)
 
